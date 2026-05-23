@@ -24,17 +24,32 @@ const makeApp = () => {
 }
 
 describe('handleMouseEvent right-click selection behavior', () => {
-  it('copies an active selection instead of dispatching right-click paste handlers', () => {
+  it('copies an active selection instead of dispatching right-click paste handlers', async () => {
     const app = makeApp()
 
     startSelection(app.props.selection, 0, 0)
     updateSelection(app.props.selection, 4, 0)
 
     handleMouseEvent(app, { action: 'press', button: 2, col: 3, kind: 'mouse', row: 1 })
+    await Promise.resolve()
 
     expect(app.props.onCopySelectionNoClear).toHaveBeenCalledOnce()
     expect(app.props.onMouseDownAt).not.toHaveBeenCalled()
     expect(app.clickCount).toBe(0)
+  })
+
+  it('falls back to right-click handlers when selection copy has no clipboard path', async () => {
+    const app = makeApp()
+    app.props.onCopySelectionNoClear.mockResolvedValue('')
+
+    startSelection(app.props.selection, 0, 0)
+    updateSelection(app.props.selection, 4, 0)
+
+    handleMouseEvent(app, { action: 'press', button: 2, col: 3, kind: 'mouse', row: 1 })
+    await Promise.resolve()
+
+    expect(app.props.onCopySelectionNoClear).toHaveBeenCalledOnce()
+    expect(app.props.onMouseDownAt).toHaveBeenCalledWith(2, 0, 2)
   })
 
   it('still dispatches right-click handlers when no text is selected', () => {

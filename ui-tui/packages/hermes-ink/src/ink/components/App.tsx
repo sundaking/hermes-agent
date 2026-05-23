@@ -636,7 +636,14 @@ export function handleMouseEvent(app: App, m: ParsedMouse): void {
       app.clickCount = 0
 
       if (baseButton === 2 && hasSelection(sel)) {
-        void app.props.onCopySelectionNoClear()
+        void app.props
+          .onCopySelectionNoClear()
+          .then(text => {
+            if (!text) {
+              app.props.onMouseDownAt(col, row, baseButton)
+            }
+          })
+          .catch(() => app.props.onMouseDownAt(col, row, baseButton))
 
         return
       }
